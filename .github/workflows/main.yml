@@ -31,6 +31,11 @@ jobs:
         git add final-wordlist.txt
         git commit -m 'Update wordlist'
 
+    - name: Debug PAT (Remove after testing)
+      run: echo $ACTIONS_PAT
+      env:
+        ACTIONS_PAT: ${{ secrets.ACTIONS_PAT }}
+
     - name: Push changes
       env:
         ACTIONS_PAT: ${{ secrets.ACTIONS_PAT }}
