@@ -31,13 +31,8 @@ jobs:
         git add final-wordlist.txt
         git commit -m 'Update wordlist'
 
-    - name: Debug PAT (Remove after testing)
-      run: echo $ACTIONS_PAT
-      env:
-        ACTIONS_PAT: ${{ secrets.ACTIONS_PAT }}
-
     - name: Push changes
       env:
-        ACTIONS_PAT: ${{ secrets.ACTIONS_PAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        git push https://$ACTIONS_PAT@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
+        git push https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
