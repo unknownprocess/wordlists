@@ -16,25 +16,39 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    - name: Set number of parts
+      run: echo "parts=2" >> $GITHUB_ENV  # Set number of parts as needed
+
     - name: Download best-dns-wordlist.txt
       run: curl -o best-dns-wordlist.txt https://wordlists-cdn.assetnote.io/data/manual/best-dns-wordlist.txt
 
     - name: Download all.txt
       run: curl -o all.txt https://gist.githubusercontent.com/jhaddix/86a06c5dc309d08580a018c66354a056/raw/96f4e51d96b2203f19f6381c8c545b278eaa0837/all.txt
 
-    - name: Combine, sort, and uniq files
+    - name: Combine, sort, and uniq files for final wordlist
       run: |
         cat best-dns-wordlist.txt all.txt | sort | uniq > final-wordlist.txt
 
     - name: Compress final wordlist
       run: gzip -c final-wordlist.txt > final-wordlist.txt.gz
 
-    - name: Commit changes
+    - name: Split all.txt into parts
+      run: |
+        total_lines=$(wc -l < all.txt)
+        lines_per_part=$(( (total_lines + parts - 1) / parts )) # Calculate number of lines per part
+        split -l $lines_per_part all.txt all_part_
+        for file in all_part_*; do
+          mv "$file" "${file}.txt"
+        done
+
+    - name: Commit and push changes
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add final-wordlist.txt.gz
-        git commit -m 'Update wordlist'
+        git commit -m 'Update final-wordlist'
+        git add all_part_*.txt
+        git commit -m 'Add parts of all.txt with specified number of parts'
 
     - name: Push changes
       env:
