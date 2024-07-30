@@ -1,0 +1,41 @@
+name: Manually Rename and Push Part File
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rename-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Explicit write permissions
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: List part files and choose one
+      id: choose-file
+      run: |
+        # List all part files
+        part_files=($(ls all_part_*.txt))
+        # Choose the first file (modify as needed to choose a different file)
+        echo "selected_file=${part_files[0]}" >> $GITHUB_ENV
+
+    - name: Rename selected part file to all.txt
+      run: |
+        mv ${{ env.selected_file }} all.txt
+
+    - name: Commit and push renamed file
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add all.txt
+        git commit -m 'Rename part file to all.txt'
+        git rm ${{ env.selected_file }}
+        git commit -m 'Remove original part file'
+
+    - name: Push changes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git push https://x-access-token:$GITHUB_TOKEN@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
